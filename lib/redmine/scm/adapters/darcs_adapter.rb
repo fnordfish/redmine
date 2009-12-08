@@ -66,7 +66,15 @@ module Redmine
           path_prefix = (path.blank? ? '' : "#{path}/")
           path = '.' if path.blank?
           entries = Entries.new          
-          cmd = "#{DARCS_BIN} annotate --repodir #{@url} --xml-output"
+          cmd = ""
+          # darcs anotate does not like the root of a repo
+          # http://lists.osuosl.org/pipermail/darcs-devel/2009-May/009272.html
+          # so we are going to "change dir" when the repo dir is a local 
+          # readable path and the path to query is root
+          if (path == '.' && File.readable?(@url))
+            cmd << "cd #{shell_quote url} && "
+          end
+          cmd << "#{DARCS_BIN} annotate --repodir #{shell_quote @url} --xml-output"
           cmd << " --match #{shell_quote("hash #{identifier}")}" if identifier
           cmd << " #{shell_quote path}"
           shellout(cmd) do |io|
