@@ -12,4 +12,20 @@ namespace :db do
       puts "Make sure engines plugin is installed."
     end
   end
+  
+  desc 'Migrate a specified plugin.'
+  task :migrate_plugin => :environment do
+    if ENV['NAME'].blank?
+      puts "Please give a plugin name with NAME=my_plugin"
+      exit
+    end
+    name = ENV['NAME']
+    version = ENV['VERSION']
+    if plugin = Rails.plugins[name]
+      puts "Migrating #{plugin.name} to " + (version ? "version #{version}" : 'latest version') + "..."
+      plugin.migrate(version ? version.to_i : nil)
+    else
+      puts "Plugin #{name} does not exist."
+    end
+  end
 end
