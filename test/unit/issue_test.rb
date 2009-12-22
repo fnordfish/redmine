@@ -216,7 +216,7 @@ class IssueTest < ActiveSupport::TestCase
     orig = Issue.find(1)
     assert_equal orig.subject, issue.subject
     assert_equal orig.tracker, issue.tracker
-    assert_equal orig.custom_values.first.value, issue.custom_values.first.value
+    assert_equal "125", issue.custom_value_for(2).value
   end
 
   def test_copy_should_copy_status
@@ -528,5 +528,65 @@ class IssueTest < ActiveSupport::TestCase
       stale.save
     end
     assert ActionMailer::Base.deliveries.empty?
+  end
+
+  context "#done_ratio" do
+    setup do
+      @issue = Issue.find(1)
+      @issue_status = IssueStatus.find(1)
+      @issue_status.update_attribute(:default_done_ratio, 50)
+    end
+    
+    context "with Setting.issue_done_ratio using the issue_field" do
+      setup do
+        Setting.issue_done_ratio = 'issue_field'
+      end
+      
+      should "read the issue's field" do
+        assert_equal 0, @issue.done_ratio
+      end
+    end
+
+    context "with Setting.issue_done_ratio using the issue_status" do
+      setup do
+        Setting.issue_done_ratio = 'issue_status'
+      end
+      
+      should "read the Issue Status's default done ratio" do
+        assert_equal 50, @issue.done_ratio
+      end
+    end
+  end
+
+  context "#update_done_ratio_from_issue_status" do
+    setup do
+      @issue = Issue.find(1)
+      @issue_status = IssueStatus.find(1)
+      @issue_status.update_attribute(:default_done_ratio, 50)
+    end
+    
+    context "with Setting.issue_done_ratio using the issue_field" do
+      setup do
+        Setting.issue_done_ratio = 'issue_field'
+      end
+      
+      should "not change the issue" do
+        @issue.update_done_ratio_from_issue_status
+
+        assert_equal 0, @issue.done_ratio
+      end
+    end
+
+    context "with Setting.issue_done_ratio using the issue_status" do
+      setup do
+        Setting.issue_done_ratio = 'issue_status'
+      end
+      
+      should "not change the issue's done ratio" do
+        @issue.update_done_ratio_from_issue_status
+
+        assert_equal 50, @issue.done_ratio
+      end
+    end
   end
 end
