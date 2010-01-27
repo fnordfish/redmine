@@ -63,6 +63,9 @@ ja:
       over_x_years:
         one:   "1年以上"
         other: "{{count}}年以上"
+      almost_x_years:
+        one:   "almost 1 year"
+        other: "almost {{count}} years"
 
   number:
     format:
@@ -908,3 +911,5 @@ ja:
   enumeration_activities: 作業分類 (時間トラッキング)
   enumeration_system_activity: システム作業分類
   label_close_versions: Close completed versions
+  label_board_sticky: Sticky
+  label_board_locked: Locked

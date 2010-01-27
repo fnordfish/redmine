@@ -105,6 +105,9 @@ gl:
       over_x_years:
         one: 'máis dun ano'
         other: '{{count}} anos'
+      almost_x_years:
+        one:   "almost 1 year"
+        other: "almost {{count}} years"
       now: 'agora'
       today: 'hoxe'
       tomorrow: 'mañá'
@@ -899,3 +902,5 @@ gl:
     You are about to remove some or all of your permissions and may no longer be able to edit this project after that.
     Are you sure you want to continue?
   label_close_versions: Close completed versions
+  label_board_sticky: Sticky
+  label_board_locked: Locked

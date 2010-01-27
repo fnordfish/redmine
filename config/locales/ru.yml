@@ -137,6 +137,9 @@ ru:
         few:   "больше {{count}} лет"
         many:  "больше {{count}} лет"
         other: "больше {{count}} лет"
+      almost_x_years:
+        one:   "almost 1 year"
+        other: "almost {{count}} years"
     prompts:
       year: "Год"
       month: "Месяц"
@@ -987,3 +990,5 @@ ru:
     Вы собираетесь удалить некоторые или все права, из-за чего могут пропасть права на редактирование этого проекта.
     Продолжить?
   label_close_versions: Закрыть завершенные версии
+  label_board_sticky: Прикреплена
+  label_board_locked: Заблокирована

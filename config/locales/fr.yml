@@ -63,6 +63,9 @@ fr:
       over_x_years:
         one:   "plus d'un an"
         other: "plus de {{count}} ans"
+      almost_x_years:
+        one:   "presqu'un an"
+        other: "presque {{count}} ans"
     prompts:
       year:   "Année"
       month:  "Mois"
@@ -900,3 +903,5 @@ fr:
   text_journal_deleted: "{{label}} {{old}} supprimé"
   text_journal_added: "{{label}} {{value}} ajouté"
   enumeration_system_activity: Activité système
+  label_board_sticky: Sticky
+  label_board_locked: Locked
