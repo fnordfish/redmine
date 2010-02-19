@@ -356,13 +356,9 @@ class ProjectsController < ApplicationController
     @issues_by_version = {}
     unless @selected_tracker_ids.empty?
       @versions.each do |version|
-        conditions = {:tracker_id => @selected_tracker_ids}
-        if !@project.versions.include?(version)
-          conditions.merge!(:project_id => project_ids)
-        end
         issues = version.fixed_issues.visible.find(:all,
                                                    :include => [:project, :status, :tracker, :priority],
-                                                   :conditions => conditions,
+                                                   :conditions => {:tracker_id => @selected_tracker_ids, :project_id => project_ids},
                                                    :order => "#{Project.table_name}.lft, #{Tracker.table_name}.position, #{Issue.table_name}.id")
         @issues_by_version[version] = issues
       end
@@ -413,15 +409,6 @@ class ProjectsController < ApplicationController
   end
   
 private
-  # Find project of id params[:id]
-  # if not found, redirect to project list
-  # Used as a before_filter
-  def find_project
-    @project = Project.find(params[:id])
-  rescue ActiveRecord::RecordNotFound
-    render_404
-  end
-  
   def find_optional_project
     return true unless params[:id]
     @project = Project.find(params[:id])

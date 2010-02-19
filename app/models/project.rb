@@ -51,7 +51,7 @@ class Project < ActiveRecord::Base
                           :join_table => "#{table_name_prefix}custom_fields_projects#{table_name_suffix}",
                           :association_foreign_key => 'custom_field_id'
                           
-  acts_as_nested_set :order => 'name', :dependent => :destroy
+  acts_as_nested_set :order => 'name'
   acts_as_attachable :view_permission => :view_files,
                      :delete_permission => :manage_files
 
@@ -74,7 +74,7 @@ class Project < ActiveRecord::Base
   # reserved words
   validates_exclusion_of :identifier, :in => %w( new )
 
-  before_destroy :delete_all_members
+  before_destroy :delete_all_members, :destroy_children
 
   named_scope :has_module, lambda { |mod| { :conditions => ["#{Project.table_name}.id IN (SELECT em.project_id FROM #{EnabledModule.table_name} em WHERE em.name=?)", mod.to_s] } }
   named_scope :active, { :conditions => "#{Project.table_name}.status = #{STATUS_ACTIVE}"}
@@ -249,7 +249,7 @@ class Project < ActiveRecord::Base
     return @allowed_parents if @allowed_parents
     @allowed_parents = Project.find(:all, :conditions => Project.allowed_to_condition(User.current, :add_subprojects))
     @allowed_parents = @allowed_parents - self_and_descendants
-    if User.current.allowed_to?(:add_project, nil, :global => true)
+    if User.current.allowed_to?(:add_project, nil, :global => true) || (!new_record? && parent.nil?)
       @allowed_parents << nil
     end
     unless parent.nil? || @allowed_parents.empty? || @allowed_parents.include?(parent)
@@ -499,17 +499,36 @@ class Project < ActiveRecord::Base
   
   private
   
+  # Destroys children before destroying self
+  def destroy_children
+    children.each do |child|
+      child.destroy
+    end
+  end
+  
   # Copies wiki from +project+
   def copy_wiki(project)
     # Check that the source project has a wiki first
     unless project.wiki.nil?
       self.wiki ||= Wiki.new
       wiki.attributes = project.wiki.attributes.dup.except("id", "project_id")
+      wiki_pages_map = {}
       project.wiki.pages.each do |page|
+        # Skip pages without content
+        next if page.content.nil?
         new_wiki_content = WikiContent.new(page.content.attributes.dup.except("id", "page_id", "updated_on"))
         new_wiki_page = WikiPage.new(page.attributes.dup.except("id", "wiki_id", "created_on", "parent_id"))
         new_wiki_page.content = new_wiki_content
         wiki.pages << new_wiki_page
+        wiki_pages_map[page.id] = new_wiki_page
+      end
+      wiki.save
+      # Reproduce page hierarchy
+      project.wiki.pages.each do |page|
+        if page.parent_id && wiki_pages_map[page.id]
+          wiki_pages_map[page.id].parent = wiki_pages_map[page.parent_id]
+          wiki_pages_map[page.id].save
+        end
       end
     end
   end

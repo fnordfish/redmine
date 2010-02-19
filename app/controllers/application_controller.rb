@@ -46,7 +46,7 @@ class ApplicationController < ActionController::Base
   include Redmine::MenuManager::MenuController
   helper Redmine::MenuManager::MenuHelper
   
-  REDMINE_SUPPORTED_SCM.each do |scm|
+  Redmine::Scm::Base.all.each do |scm|
     require_dependency "repository/#{scm.underscore}"
   end
 
@@ -158,6 +158,13 @@ class ApplicationController < ActionController::Base
   # Authorize the user for the requested action outside a project
   def authorize_global(ctrl = params[:controller], action = params[:action], global = true)
     authorize(ctrl, action, global)
+  end
+
+  # Find project of id params[:id]
+  def find_project
+    @project = Project.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    render_404
   end
   
   # make sure that the user is a member of the project (or admin) if project is private
