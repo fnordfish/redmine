@@ -18,7 +18,7 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
 class UserTest < ActiveSupport::TestCase
-  fixtures :users, :members, :projects, :roles, :member_roles
+  fixtures :users, :members, :projects, :roles, :member_roles, :auth_sources
 
   def setup
     @admin = User.find(1)
@@ -118,6 +118,39 @@ class UserTest < ActiveSupport::TestCase
     
     user = User.try_to_login("jsmith", "jsmith")
     assert_equal nil, user  
+  end
+  
+  if ldap_configured?
+    context "#try_to_login using LDAP" do
+      context "on the fly registration" do
+        setup do
+          @auth_source = AuthSourceLdap.find(1)
+        end
+
+        context "with a successful authentication" do
+          should "create a new user account if it doesn't exist" do
+            assert_difference('User.count') do
+              user = User.try_to_login('edavis', '123456')
+              assert !user.admin?
+            end
+          end
+          
+          should "retrieve existing user" do
+            user = User.try_to_login('edavis', '123456')
+            user.admin = true
+            user.save!
+            
+            assert_no_difference('User.count') do
+              user = User.try_to_login('edavis', '123456')
+              assert user.admin?
+            end
+          end
+        end
+      end
+    end
+
+  else
+    puts "Skipping LDAP tests."
   end
   
   def test_create_anonymous
@@ -239,6 +272,32 @@ class UserTest < ActiveSupport::TestCase
     u.random_password
     assert !u.password.blank?
     assert !u.password_confirmation.blank?
+  end
+
+  context "#change_password_allowed?" do
+    should "be allowed if no auth source is set" do
+      user = User.generate_with_protected!
+      assert user.change_password_allowed?
+    end
+
+    should "delegate to the auth source" do
+      user = User.generate_with_protected!
+      
+      allowed_auth_source = AuthSource.generate!
+      def allowed_auth_source.allow_password_changes?; true; end
+
+      denied_auth_source = AuthSource.generate!
+      def denied_auth_source.allow_password_changes?; false; end
+
+      assert user.change_password_allowed?
+
+      user.auth_source = allowed_auth_source
+      assert user.change_password_allowed?, "User not allowed to change password, though auth source does"
+
+      user.auth_source = denied_auth_source
+      assert !user.change_password_allowed?, "User allowed to change password, though auth source does not"
+    end
+
   end
   
   if Object.const_defined?(:OpenID)
