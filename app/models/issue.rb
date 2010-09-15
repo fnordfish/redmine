@@ -62,10 +62,28 @@ class Issue < ActiveRecord::Base
   
   named_scope :open, :conditions => ["#{IssueStatus.table_name}.is_closed = ?", false], :include => :status
 
-  named_scope :recently_updated, :order => "#{self.table_name}.updated_on DESC"
+  named_scope :recently_updated, :order => "#{Issue.table_name}.updated_on DESC"
   named_scope :with_limit, lambda { |limit| { :limit => limit} }
   named_scope :on_active_project, :include => [:status, :project, :tracker],
                                   :conditions => ["#{Project.table_name}.status=#{Project::STATUS_ACTIVE}"]
+  named_scope :for_gantt, lambda {
+    {
+      :include => [:tracker, :status, :assigned_to, :priority, :project, :fixed_version],
+      :order => "#{Issue.table_name}.due_date ASC, #{Issue.table_name}.start_date ASC, #{Issue.table_name}.id ASC"
+    }
+  }
+
+  named_scope :without_version, lambda {
+    {
+      :conditions => { :fixed_version_id => nil}
+    }
+  }
+
+  named_scope :with_query, lambda {|query|
+    {
+      :conditions => Query.merge_conditions(query.statement)
+    }
+  }
 
   before_create :default_assign
   before_save :reschedule_following_issues, :close_duplicates, :update_done_ratio_from_issue_status
@@ -357,6 +375,13 @@ class Issue < ActiveRecord::Base
   def overdue?
     !due_date.nil? && (due_date < Date.today) && !status.is_closed?
   end
+
+  # Is the amount of work done less than it should for the due date
+  def behind_schedule?
+    return false if start_date.nil? || due_date.nil?
+    done_date = start_date + ((due_date - start_date+1)* done_ratio/100).floor
+    return done_date <= Date.today
+  end
   
   # Users the issue can be assigned to
   def assignable_users
@@ -629,6 +654,7 @@ class Issue < ActiveRecord::Base
       end
       reload
     elsif parent_issue_id != parent_id
+      former_parent_id = parent_id
       # moving an existing issue
       if @parent_issue && @parent_issue.root_id == root_id
         # inside the same tree
@@ -658,12 +684,18 @@ class Issue < ActiveRecord::Base
           relation.destroy unless relation.valid?
         end
       end
+      # update former parent
+      recalculate_attributes_for(former_parent_id) if former_parent_id
     end
     remove_instance_variable(:@parent_issue) if instance_variable_defined?(:@parent_issue)
   end
   
   def update_parent_attributes
-    if parent_id && p = Issue.find_by_id(parent_id)
+    recalculate_attributes_for(parent_id) if parent_id
+  end
+
+  def recalculate_attributes_for(issue_id)
+    if issue_id && p = Issue.find_by_id(issue_id)
       # priority = highest priority of children
       if priority_position = p.children.maximum("#{IssuePriority.table_name}.position", :include => :priority)
         p.priority = IssuePriority.find_by_position(priority_position)

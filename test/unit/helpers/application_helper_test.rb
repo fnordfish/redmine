@@ -17,10 +17,7 @@
 
 require File.dirname(__FILE__) + '/../../test_helper'
 
-class ApplicationHelperTest < HelperTestCase
-  include ApplicationHelper
-  include ActionView::Helpers::TextHelper
-  include ActionView::Helpers::DateHelper
+class ApplicationHelperTest < ActionView::TestCase
   
   fixtures :projects, :roles, :enabled_modules, :users,
                       :repositories, :changesets, 
@@ -32,6 +29,35 @@ class ApplicationHelperTest < HelperTestCase
 
   def setup
     super
+  end
+
+  context "#link_to_if_authorized" do
+    context "authorized user" do
+      should "be tested"
+    end
+    
+    context "unauthorized user" do
+      should "be tested"
+    end
+    
+    should "allow using the :controller and :action for the target link" do
+      User.current = User.find_by_login('admin')
+
+      @project = Issue.first.project # Used by helper
+      response = link_to_if_authorized("By controller/action",
+                                       {:controller => 'issues', :action => 'edit', :id => Issue.first.id})
+      assert_match /href/, response
+    end
+    
+    should "allow using the url for the target link" do
+      User.current = User.find_by_login('admin')
+
+      @project = Issue.first.project # Used by helper
+      response = link_to_if_authorized("By url",
+                                       new_issue_move_path(:id => Issue.first.id))
+      assert_match /href/, response
+    end
+
   end
   
   def test_auto_links
@@ -420,6 +446,10 @@ h2. Subtitle with %{color:red}red text%
 
 h1. Another title
 
+h2. An "Internet link":http://www.redmine.org/ inside subtitle
+
+h2. "Project Name !/attachments/1234/logo_small.gif! !/attachments/5678/logo_2.png!":/projects/projectname/issues
+
 RAW
 
     expected = '<ul class="toc">' +
@@ -428,8 +458,10 @@ RAW
                '<li class="heading2"><a href="#Subtitle-with-another-Wiki-link">Subtitle with another Wiki link</a></li>' + 
                '<li class="heading2"><a href="#Subtitle-with-red-text">Subtitle with red text</a></li>' +
                '<li class="heading1"><a href="#Another-title">Another title</a></li>' +
+               '<li class="heading2"><a href="#An-Internet-link-inside-subtitle">An Internet link inside subtitle</a></li>' +
+               '<li class="heading2"><a href="#Project-Name">Project Name</a></li>' +
                '</ul>'
-               
+
     assert textilizable(raw).gsub("\n", "").include?(expected)
   end
   
@@ -569,7 +601,7 @@ EXPECTED
     
     # turn off avatars
     Setting.gravatar_enabled = '0'
-    assert_nil avatar(User.find_by_mail('jsmith@somenet.foo'))
+    assert_equal '', avatar(User.find_by_mail('jsmith@somenet.foo'))
   end
   
   def test_link_to_user
@@ -590,5 +622,17 @@ EXPECTED
     assert user.anonymous?
     t = link_to_user(user)
     assert_equal ::I18n.t(:label_user_anonymous), t
+  end
+
+  def test_link_to_project
+    project = Project.find(1)
+    assert_equal %(<a href="/projects/ecookbook">eCookbook</a>),
+                 link_to_project(project)
+    assert_equal %(<a href="/projects/ecookbook/settings">eCookbook</a>),
+                 link_to_project(project, :action => 'settings')
+    assert_equal %(<a href="http://test.host/projects/ecookbook?jump=blah">eCookbook</a>),
+                 link_to_project(project, {:only_path => false, :jump => 'blah'})
+    assert_equal %(<a href="/projects/ecookbook/settings" class="project">eCookbook</a>),
+                 link_to_project(project, {:action => 'settings'}, :class => "project")
   end
 end

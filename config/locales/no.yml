@@ -3,6 +3,7 @@
   support:
     array:
       sentence_connector: "og"
+  direction: ltr
   date:
     formats:
       default: "%d.%m.%Y"
@@ -110,6 +111,7 @@
         greater_than_start_date: "må være større enn startdato"
         not_same_project: "hører ikke til samme prosjekt"
         circular_dependency: "Denne relasjonen ville lagd en sirkulær avhengighet"
+        cant_link_an_issue_with_a_descendant: "An issue can not be linked to one of its subtasks"
 
   
   actionview_instancetag_blank_option: Vennligst velg
@@ -163,7 +165,7 @@
   mail_body_account_information: Informasjon om din konto
   mail_subject_account_activation_request: "{{value}} kontoaktivering"
   mail_body_account_activation_request: "En ny bruker ({{value}}) er registrert, og avventer din godkjenning:"
-  mail_subject_reminder: "{{count}} sak(er) har frist de kommende dagene"
+  mail_subject_reminder: "{{count}} sak(er) har frist de kommende {{days}} dagene"
   mail_body_reminder: "{{count}} sak(er) som er tildelt deg har frist de kommende {{days}} dager:"
   
   gui_validation_error: 1 feil
@@ -685,7 +687,7 @@
   text_user_wrote: "{{value}} skrev:"
   
   default_role_manager: Leder
-  default_role_developper: Utvikler
+  default_role_developer: Utvikler
   default_role_reporter: Rapportør
   default_tracker_bug: Feil
   default_tracker_feature: Funksjon
@@ -897,3 +899,10 @@
   notice_failed_to_save_members: "Failed to save member(s): {{errors}}."
   text_zoom_out: Zoom out
   text_zoom_in: Zoom in
+  notice_unable_delete_time_entry: Unable to delete time log entry.
+  label_overall_spent_time: Overall spent time
+  field_time_entries: Log time
+  project_module_gantt: Gantt
+  project_module_calendar: Calendar
+  field_member_of_group: Member of Group
+  field_assigned_to_role: Member of Role
