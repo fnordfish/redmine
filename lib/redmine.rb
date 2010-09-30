@@ -8,6 +8,7 @@ require 'redmine/core_ext'
 require 'redmine/themes'
 require 'redmine/hook'
 require 'redmine/plugin'
+require 'redmine/notifiable'
 require 'redmine/wiki_formatting'
 require 'redmine/scm/base'
 
@@ -50,7 +51,7 @@ Redmine::AccessControl.map do |map|
   map.permission :edit_project, {:projects => [:settings, :edit, :update]}, :require => :member
   map.permission :select_project_modules, {:projects => :modules}, :require => :member
   map.permission :manage_members, {:projects => :settings, :members => [:new, :edit, :destroy, :autocomplete_for_member]}, :require => :member
-  map.permission :manage_versions, {:projects => :settings, :versions => [:new, :edit, :close_completed, :destroy]}, :require => :member
+  map.permission :manage_versions, {:projects => :settings, :versions => [:new, :create, :edit, :update, :close_completed, :destroy]}, :require => :member
   map.permission :add_subprojects, {:projects => [:new, :create]}, :require => :member
   
   map.project_module :issue_tracking do |map|
@@ -91,9 +92,9 @@ Redmine::AccessControl.map do |map|
   end
   
   map.project_module :news do |map|
-    map.permission :manage_news, {:news => [:new, :edit, :destroy, :destroy_comment]}, :require => :member
+    map.permission :manage_news, {:news => [:new, :create, :edit, :update, :destroy], :comments => [:destroy]}, :require => :member
     map.permission :view_news, {:news => [:index, :show]}, :public => true
-    map.permission :comment_news, {:news => :add_comment}
+    map.permission :comment_news, {:comments => :create}
   end
 
   map.project_module :documents do |map|

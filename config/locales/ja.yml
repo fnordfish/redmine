@@ -321,6 +321,7 @@ ja:
   field_parent_issue: 親チケット
   field_member_of_group: 担当者のグループ
   field_assigned_to_role: 担当者のロール
+  field_text: テキスト
   
   setting_app_title: アプリケーションのタイトル
   setting_app_subtitle: アプリケーションのサブタイトル
@@ -812,6 +813,7 @@ ja:
   button_create_and_continue: 連続作成
   button_test: テスト
   button_edit: 編集
+  button_edit_associated_wikipage: "関連するWikiページを編集: {{page_title}}"
   button_add: 追加
   button_change: 変更
   button_apply: 適用
@@ -863,6 +865,7 @@ ja:
   text_subprojects_destroy_warning: "サブプロジェクト {{value}} も削除されます。"
   text_workflow_edit: ワークフローを編集するロールとトラッカーを選んでください
   text_are_you_sure: よろしいですか？
+  text_are_you_sure_with_children: チケットとその子チケット全てを削除しますか?
   text_journal_changed: "{{label}} を {{old}} から {{new}} に変更"
   text_journal_set_to: "{{label}} を {{value}} にセット"
   text_journal_deleted: "{{label}} を削除 ({{old}})"
@@ -940,3 +943,7 @@ ja:
   enumeration_doc_categories: 文書カテゴリ
   enumeration_activities: 作業分類 (時間トラッキング)
   enumeration_system_activity: システム作業分類
+  label_user_mail_option_only_owner: Only for things I am the owner of
+  setting_default_notification_option: Default notification option
+  label_user_mail_option_only_my_events: Only for things I watch or I'm involved in
+  label_user_mail_option_only_assigned: Only for things I am assigned to

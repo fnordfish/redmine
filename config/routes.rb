@@ -136,42 +136,33 @@ ActionController::Routing::Routes.draw do |map|
     relations.connect 'issues/:issue_id/relations/:id', :action => 'new'
     relations.connect 'issues/:issue_id/relations/:id/destroy', :action => 'destroy'
   end
-  
-  map.with_options :controller => 'news' do |news_routes|
-    news_routes.with_options :conditions => {:method => :get} do |news_views|
-      news_views.connect 'news', :action => 'index'
-      news_views.connect 'projects/:project_id/news', :action => 'index'
-      news_views.connect 'projects/:project_id/news.:format', :action => 'index'
-      news_views.connect 'news.:format', :action => 'index'
-      news_views.connect 'projects/:project_id/news/new', :action => 'new'
-      news_views.connect 'news/:id', :action => 'show'
-      news_views.connect 'news/:id/edit', :action => 'edit'
-    end
-    news_routes.with_options do |news_actions|
-      news_actions.connect 'projects/:project_id/news', :action => 'new'
-      news_actions.connect 'news/:id/edit', :action => 'edit'
-      news_actions.connect 'news/:id/destroy', :action => 'destroy'
-    end
-  end
-  
+
   map.connect 'projects/:id/members/new', :controller => 'members', :action => 'new'
   
   map.with_options :controller => 'users' do |users|
     users.with_options :conditions => {:method => :get} do |user_views|
       user_views.connect 'users', :action => 'index'
       user_views.connect 'users/:id', :action => 'show', :id => /\d+/
-      user_views.connect 'users/new', :action => 'add'
+      user_views.connect 'users/new', :action => 'new'
       user_views.connect 'users/:id/edit/:tab', :action => 'edit', :tab => nil
     end
     users.with_options :conditions => {:method => :post} do |user_actions|
-      user_actions.connect 'users', :action => 'add'
-      user_actions.connect 'users/new', :action => 'add'
+      user_actions.connect 'users/new', :action => 'create'
       user_actions.connect 'users/:id/edit', :action => 'edit'
       user_actions.connect 'users/:id/memberships', :action => 'edit_membership'
       user_actions.connect 'users/:id/memberships/:membership_id', :action => 'edit_membership'
       user_actions.connect 'users/:id/memberships/:membership_id/destroy', :action => 'destroy_membership'
     end
   end
+
+  # For nice "roadmap" in the url for the index action
+  map.connect 'projects/:project_id/roadmap', :controller => 'versions', :action => 'index'
+
+  map.all_news 'news', :controller => 'news', :action => 'index'
+  map.formatted_all_news 'news.:format', :controller => 'news', :action => 'index'
+  map.preview_news '/news/preview', :controller => 'previews', :action => 'news'
+  map.connect 'news/:id/comments', :controller => 'comments', :action => 'create', :conditions => {:method => :post}
+  map.connect 'news/:id/comments/:comment_id', :controller => 'comments', :action => 'destroy', :conditions => {:method => :delete}
 
   map.resources :projects, :member => {
     :copy => [:get, :post],
@@ -182,6 +173,8 @@ ActionController::Routing::Routes.draw do |map|
   } do |project|
     project.resource :project_enumerations, :as => 'enumerations', :only => [:update, :destroy]
     project.resources :files, :only => [:index, :new, :create]
+    project.resources :versions, :collection => {:close_completed => :put}, :member => {:status_by => :post}
+    project.resources :news, :shallow => true
   end
 
   # Destroy uses a get request to prompt the user before the actual DELETE request
@@ -201,15 +194,8 @@ ActionController::Routing::Routes.draw do |map|
     activity.connect 'activity', :id => nil
     activity.connect 'activity.:format', :id => nil
   end
+
     
-  map.with_options :controller => 'versions' do |versions|
-    versions.connect 'projects/:project_id/versions/new', :action => 'new'
-    versions.connect 'projects/:project_id/roadmap', :action => 'index'
-    versions.with_options :conditions => {:method => :post} do |version_actions|
-      version_actions.connect 'projects/:project_id/versions/close_completed', :action => 'close_completed'
-    end
-  end
-  
   map.with_options :controller => 'issue_categories' do |categories|
     categories.connect 'projects/:project_id/issue_categories/new', :action => 'new'
   end

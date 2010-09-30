@@ -156,10 +156,16 @@ class RoutingTest < ActionController::IntegrationTest
     should_route :get, "/news/2", :controller => 'news', :action => 'show', :id => '2'
     should_route :get, "/projects/567/news/new", :controller => 'news', :action => 'new', :project_id => '567'
     should_route :get, "/news/234", :controller => 'news', :action => 'show', :id => '234'
+    should_route :get, "/news/567/edit", :controller => 'news', :action => 'edit', :id => '567'
+    should_route :get, "/news/preview", :controller => 'previews', :action => 'news'
+    
+    should_route :post, "/projects/567/news", :controller => 'news', :action => 'create', :project_id => '567'
+    should_route :post, "/news/567/comments", :controller => 'comments', :action => 'create', :id => '567'
 
-    should_route :post, "/projects/567/news/new", :controller => 'news', :action => 'new', :project_id => '567'
-    should_route :post, "/news/567/edit", :controller => 'news', :action => 'edit', :id => '567'
-    should_route :post, "/news/567/destroy", :controller => 'news', :action => 'destroy', :id => '567'
+    should_route :put, "/news/567", :controller => 'news', :action => 'update', :id => '567'
+
+    should_route :delete, "/news/567", :controller => 'news', :action => 'destroy', :id => '567'
+    should_route :delete, "/news/567/comments/15", :controller => 'comments', :action => 'destroy', :id => '567', :comment_id => '15'
   end
 
   context "projects" do
@@ -240,21 +246,27 @@ class RoutingTest < ActionController::IntegrationTest
   context "users" do
     should_route :get, "/users", :controller => 'users', :action => 'index'
     should_route :get, "/users/44", :controller => 'users', :action => 'show', :id => '44'
-    should_route :get, "/users/new", :controller => 'users', :action => 'add'
+    should_route :get, "/users/new", :controller => 'users', :action => 'new'
     should_route :get, "/users/444/edit", :controller => 'users', :action => 'edit', :id => '444'
     should_route :get, "/users/222/edit/membership", :controller => 'users', :action => 'edit', :id => '222', :tab => 'membership'
 
-    should_route :post, "/users/new", :controller => 'users', :action => 'add'
+    should_route :post, "/users/new", :controller => 'users', :action => 'create'
     should_route :post, "/users/444/edit", :controller => 'users', :action => 'edit', :id => '444'
     should_route :post, "/users/123/memberships", :controller => 'users', :action => 'edit_membership', :id => '123'
     should_route :post, "/users/123/memberships/55", :controller => 'users', :action => 'edit_membership', :id => '123', :membership_id => '55'
     should_route :post, "/users/567/memberships/12/destroy", :controller => 'users', :action => 'destroy_membership', :id => '567', :membership_id => '12'
   end
 
+  # TODO: should they all be scoped under /projects/:project_id ?
   context "versions" do
     should_route :get, "/projects/foo/versions/new", :controller => 'versions', :action => 'new', :project_id => 'foo'
+    should_route :get, "/versions/show/1", :controller => 'versions', :action => 'show', :id => '1'
+    should_route :get, "/versions/edit/1", :controller => 'versions', :action => 'edit', :id => '1'
 
-    should_route :post, "/projects/foo/versions/new", :controller => 'versions', :action => 'new', :project_id => 'foo'
+    should_route :post, "/projects/foo/versions", :controller => 'versions', :action => 'create', :project_id => 'foo'
+    should_route :post, "/versions/update/1", :controller => 'versions', :action => 'update', :id => '1'
+
+    should_route :delete, "/versions/destroy/1", :controller => 'versions', :action => 'destroy', :id => '1'
   end
 
   context "wiki (singular, project's pages)" do
